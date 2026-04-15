@@ -1,6 +1,12 @@
 # ⭐ Stellar Mario: Blockchain Platformer 🍄
 
-![Stellar Mario Screenshot](./docs/screenshot.png) <!-- GANTI NANTI DENGAN NAMA FILE SCREENSHOT ANDA -->
+<img width="2559" height="1361" alt="image" src="https://github.com/user-attachments/assets/c6d41e23-6d50-425e-bf17-a755da519ae6" />
+
+<img width="2540" height="1303" alt="image" src="https://github.com/user-attachments/assets/b33f588e-7782-4ab3-98c7-838f2b3377b1" />
+
+<img width="1912" height="984" alt="image" src="https://github.com/user-attachments/assets/0249f463-ee42-4b1d-af72-d418de5f5d51" />
+
+
 
 **Stellar Mario** adalah game Web3 2D Platformer bergaya retro (mirip Super Mario) yang mengintegrasikan keseruan game klasik dengan teknologi **Stellar Smart Contracts (Soroban)**. Semua pencapaian pemain, mulai dari skor, pengumpulan koin, hingga *global leaderboard* dan sistem *achievement* direkam secara desentralisasi di atas blockchain Stellar Testnet!
 
