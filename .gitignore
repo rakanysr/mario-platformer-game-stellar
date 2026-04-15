@@ -1,0 +1,23 @@
+# Rust build artifacts
+target/
+
+# Frontend build output
+frontend/dist/
+
+# Dependencies — JANGAN commit node_modules
+frontend/node_modules/
+
+# Stellar CLI
+.stellar/
+
+# Environment
+.env
+.env.local
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
