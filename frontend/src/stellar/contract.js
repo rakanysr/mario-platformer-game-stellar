@@ -97,7 +97,7 @@ async function invokeContract(walletAddress, method, params) {
  */
 async function readContract(method, params = []) {
   if (!CONTRACT_DEPLOYED) {
-    throw new Error('Contract belum di-deploy');
+    throw new Error('Contract belum di-deploy. Set CONTRACT_DEPLOYED di contract.js');
   }
 
   const server  = getRpc();
@@ -116,7 +116,10 @@ async function readContract(method, params = []) {
   const simResult = await server.simulateTransaction(tx);
 
   if (SorobanRpc.Api.isSimulationError(simResult)) {
-    throw new Error(`Read error: ${simResult.error}`);
+    const errorMsg = `Read error on ${method}: ${simResult.error}`;
+    console.error('[Contract] ' + errorMsg);
+    console.error('[Contract] Full error:', simResult);
+    throw new Error(errorMsg);
   }
 
   return simResult.result?.retval;

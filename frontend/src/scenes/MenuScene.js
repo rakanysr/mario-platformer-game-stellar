@@ -289,17 +289,26 @@ export class MenuScene extends Phaser.Scene {
       this.playerData = await getPlayer(address);
       this.updatePlayerPanel();
     } catch (err) {
-      console.warn('[Menu] Contract belum deploy, mode offline:', err.message);
+      console.error('[Menu] Contract error:', err.message);
+      console.error('[Menu] Full error:', err);
 
       // ── Offline mode: tampilkan info wallet tanpa data on-chain ──
       const shortAddr = `${address.slice(0, 4)}...${address.slice(-4)}`;
       this.playerData = null; // tetap null tapi panel tetap diupdate
+      
+      // Tampilkan error detail untuk debugging
+      const errorDetail = err.message.includes('CONTRACT ID') || err.message.includes('not found')
+        ? 'Invalid CONTRACT_ID?'
+        : err.message.includes('offchain')
+        ? 'RPC Connection Error'
+        : 'Contract Error';
+      
       this.playerStatusText.setText(
-        `${shortAddr}\n\nMode Offline\n(contract belum\ndeploy)`,
+        `${shortAddr}\n\nMode Offline\n(${errorDetail})`,
       );
       this.playerStatusText.setColor('#f6ad55');
       this.playerStatusText.setLineSpacing(6);
-      this.showNotification('⚠️ Mode Offline — contract belum deploy', '#f6e05e');
+      this.showNotification(`⚠️ Mode Offline — ${errorDetail}`, '#f6e05e');
     }
   }
 
