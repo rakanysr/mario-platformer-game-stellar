@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>StellarMario — Blockchain Platformer</title>
+  <meta name="description" content="A Mario-style 2D platformer game with on-chain scores and leaderboard powered by Soroban smart contracts on Stellar." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: #0a0a1a;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      font-family: 'Inter', sans-serif;
+      overflow: hidden;
+    }
+
+    #game-wrapper {
+      position: relative;
+    }
+
+    /* Wallet bar above game */
+    #wallet-bar {
+      width: 900px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 18px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 12px 12px 0 0;
+      backdrop-filter: blur(10px);
+    }
+
+    #wallet-info {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 9px;
+      color: #a0aec0;
+      letter-spacing: 1px;
+    }
+
+    #wallet-info span.address {
+      color: #63b3ed;
+    }
+
+    #connect-btn {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 8px;
+      padding: 8px 16px;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      letter-spacing: 1px;
+    }
+
+    #connect-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 20px rgba(102,126,234,0.5);
+    }
+
+    #connect-btn.connected {
+      background: linear-gradient(135deg, #38a169, #276749);
+    }
+
+    /* Phaser canvas */
+    canvas {
+      display: block;
+      border-radius: 0 0 12px 12px;
+      box-shadow: 0 0 80px rgba(102, 126, 234, 0.3);
+    }
+
+    /* Loading overlay */
+    #loading {
+      position: absolute;
+      inset: 0;
+      background: #0a0a1a;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      border-radius: 12px;
+      transition: opacity 0.5s ease;
+    }
+
+    #loading h1 {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 28px;
+      color: #fff;
+      text-shadow: 0 0 30px rgba(102,126,234,0.8);
+      margin-bottom: 30px;
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    #loading .subtitle {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 10px;
+      color: #667eea;
+      margin-bottom: 40px;
+    }
+
+    .progress-bar {
+      width: 300px;
+      height: 8px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #667eea, #e879f9);
+      border-radius: 4px;
+      animation: loading 2s ease-in-out forwards;
+    }
+
+    @keyframes loading {
+      from { width: 0%; }
+      to { width: 100%; }
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.7; }
+    }
+  </style>
+</head>
+<body>
+  <div id="game-wrapper">
+    <div id="wallet-bar">
+      <div id="wallet-info">
+        ⭐ STELLAR MARIO &nbsp;|&nbsp; 
+        <span class="address" id="wallet-address">NOT CONNECTED</span>
+      </div>
+      <button id="connect-btn">CONNECT WALLET</button>
+    </div>
+
+    <div id="loading">
+      <h1>⭐ STELLAR MARIO</h1>
+      <p class="subtitle">POWERED BY SOROBAN</p>
+      <div class="progress-bar">
+        <div class="progress-fill"></div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>
