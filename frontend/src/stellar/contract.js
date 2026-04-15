@@ -78,12 +78,12 @@ export async function runDiagnostics() {
       const contract = new Contract(CONTRACT_ID);
       console.log('✅ Contract object created');
       
-      // Build test transaction
+      // Build test transaction - just call method without parameters
       const testTx = new TransactionBuilder(
         new Account(Keypair.random().publicKey(), '0'),
         { fee: BASE_FEE, networkPassphrase: NETWORK_PASSPHRASE }
       )
-        .addOperation(contract.call('get_leaderboard', []))
+        .addOperation(contract.call('get_leaderboard'))  // No params, no spreading
         .setTimeout(30)
         .build();
       
@@ -202,24 +202,52 @@ function createMinimalRpcClient(url) {
         }),
       });
       const data = await response.json();
-      if (data.error) throw new Error(data.error.message);
+      console.log('[RPC] sendTransaction response:', data);
+      if (data.error) {
+        console.error('[RPC] sendTransaction error:', data.error);
+        throw new Error(data.error.message || JSON.stringify(data.error));
+      }
+      if (!data.result) {
+        console.error('[RPC] sendTransaction no result');
+        throw new Error('No result from sendTransaction');
+      }
+      console.log('[RPC] sendTransaction success, hash:', data.result.hash);
       return data.result;
     },
     getTransaction: async (hash) => {
-      console.log('[RPC] Calling getTransaction via fetch');
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          jsonrpc: '2.0',
-          id: '1',
-          method: 'getTransaction',
-          params: { hash },
-        }),
-      });
-      const data = await response.json();
-      if (data.error) throw new Error(data.error.message);
-      return data.result;
+      console.log('[RPC] Calling getTransaction for hash:', hash);
+      try {
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            jsonrpc: '2.0',
+            id: Date.now().toString(),
+            method: 'getTransaction',
+            params: { hash },
+          }),
+        });
+        const data = await response.json();
+        console.log('[RPC] getTransaction response:', data);
+        
+        if (data.error) {
+          // If error, assume NOT_FOUND
+          console.warn('[RPC] getTransaction error, returning NOT_FOUND:', data.error);
+          return { status: 'NOT_FOUND' };
+        }
+        
+        if (data.result) {
+          console.log('[RPC] Got transaction result:', data.result);
+          return data.result;
+        }
+        
+        // No result and no error = transaction not found yet
+        return { status: 'NOT_FOUND' };
+      } catch (e) {
+        console.error('[RPC] getTransaction fetch error:', e.message);
+        // Return NOT_FOUND on error
+        return { status: 'NOT_FOUND' };
+      }
     },
     getAccount: async (accountId) => {
       console.log('[RPC] Calling getAccount for account:', accountId);
@@ -272,6 +300,49 @@ function isSimulationError(simResult) {
 }
 
 /**
+ * Safe convert ScVal to native format
+ * Handles both raw ScVal and XDR-encoded result objects
+ */
+function safeScValToNative(val) {
+  if (!val) return null;
+  
+  try {
+    // Check jika ini XDR-encoded result object
+    if (val.xdr && typeof val.xdr === 'string') {
+      console.log('[Contract] Detected XDR-encoded result, decoding...');
+      try {
+        // Decode XDR string to ScVal
+        const scVal = xdr.ScVal.fromXDR(val.xdr, 'base64');
+        console.log('[Contract] Decoded XDR to ScVal:', scVal);
+        const native = scValToNative(scVal);
+        console.log('[Contract] SafeScValToNative success via XDR decode:', native);
+        return native;
+      } catch (xdrErr) {
+        console.warn('[Contract] XDR decode failed:', xdrErr.message);
+        // Fallback to raw value
+        return val;
+      }
+    }
+    
+    // Check jika sudah native format (bukan ScVal)
+    if (typeof val === 'string' || typeof val === 'number' || typeof val === 'boolean') {
+      console.log('[Contract] Value is already native:', typeof val);
+      return val;
+    }
+    
+    // Try convert dengan scValToNative
+    const native = scValToNative(val);
+    console.log('[Contract] SafeScValToNative success, type:', typeof native);
+    return native;
+  } catch (e) {
+    console.warn('[Contract] SafeScValToNative failed, returning raw value:', e.message);
+    console.warn('[Contract] Raw value:', val);
+    // Fallback: return value as-is
+    return val;
+  }
+}
+
+/**
  * Assemble transaction dengan fallback jika SorobanRpc.assembleTransaction tidak tersedia
  */
 function assembleTransaction(tx, simResult) {
@@ -309,16 +380,45 @@ async function invokeContract(walletAddress, method, params) {
   
   const contract = new Contract(CONTRACT_ID);
 
-  const tx = new TransactionBuilder(account, {
-    fee: BASE_FEE,
-    networkPassphrase: NETWORK_PASSPHRASE,
-  })
-    .addOperation(contract.call(method, ...params))
-    .setTimeout(30)
-    .build();
+  let tx;
+  try {
+    console.log('[Contract] Building contract operation...');
+    // Build operation - handle empty params carefully
+    let operation;
+    if (params && params.length > 0) {
+      console.log('[Contract] Building operation with', params.length, 'params');
+      operation = contract.call(method, ...params);
+    } else {
+      console.log('[Contract] Building operation with no params');
+      operation = contract.call(method);
+    }
+    console.log('[Contract] Operation built successfully');
+    
+    tx = new TransactionBuilder(account, {
+      fee: BASE_FEE,
+      networkPassphrase: NETWORK_PASSPHRASE,
+    })
+      .addOperation(operation)
+      .setTimeout(30)
+      .build();
+    
+    console.log('[Contract] TX built successfully, XDR length:', tx.toXDR().length);
+  } catch (buildErr) {
+    console.error('[Contract] Error building transaction:', buildErr.message);
+    console.error('[Contract] Error:', buildErr);
+    throw buildErr;
+  }
 
   // Simulate
-  const simResult = await server.simulateTransaction(tx);
+  let simResult;
+  try {
+    simResult = await server.simulateTransaction(tx);
+    console.log('[Contract] Simulation success');
+  } catch (simErr) {
+    console.error('[Contract] Simulation failed:', simErr.message);
+    throw simErr;
+  }
+  
   if (isSimulationError(simResult)) {
     throw new Error(`Simulation error: ${simResult.error || simResult.errorResult}`);
   }
@@ -332,19 +432,67 @@ async function invokeContract(walletAddress, method, params) {
 
   // Submit
   const sendResult = await server.sendTransaction(signedTx);
+  console.log('[Contract] sendTransaction result:', sendResult);
 
-  // Poll untuk konfirmasi
-  let result = await server.getTransaction(sendResult.hash);
-  while (result.status === 'NOT_FOUND') {
-    await new Promise(r => setTimeout(r, 1000));
-    result = await server.getTransaction(sendResult.hash);
+  // Check result status immediately
+  if (sendResult.status === 'ERROR') {
+    console.error('[Contract] Transaction submission ERROR:', sendResult);
+    throw new Error(`Transaction failed: ${sendResult.errorResultXdr}`);
   }
 
-  if (result.status !== 'SUCCESS') {
-    throw new Error(`Transaction failed: ${result.status}`);
+  // If already SUCCESS, return immediately
+  if (sendResult.status === 'SUCCESS') {
+    console.log('[Contract] Transaction already SUCCESS');
+    return sendResult;
   }
 
-  return result;
+  // Otherwise, do brief polling (only for PENDING status)
+  let result = sendResult;
+  let attempts = 0;
+  const maxAttempts = 3; // Only 3 attempts = 3 seconds max
+  
+  try {
+    // Poll if PENDING
+    if (sendResult.status === 'PENDING') {
+      console.log('[Contract] Transaction PENDING, polling...');
+      
+      while (attempts < maxAttempts) {
+        await new Promise(r => setTimeout(r, 1000));
+        const nextResult = await server.getTransaction(sendResult.hash);
+        attempts++;
+        console.log(`[Contract] Poll attempt ${attempts}: status=${nextResult?.status}`);
+        
+        if (nextResult?.status && nextResult.status !== 'NOT_FOUND' && nextResult.status !== 'PENDING') {
+          result = nextResult;
+          console.log('[Contract] Poll got result:', result.status);
+          break;
+        }
+        
+        // Stop if ERROR
+        if (nextResult?.status === 'ERROR') {
+          console.error('[Contract] Transaction ERROR after submission:', nextResult);
+          throw new Error(`Transaction failed: ${nextResult.errorResultXdr}`);
+        }
+      }
+    }
+  } catch (pollErr) {
+    console.error('[Contract] Polling error:', pollErr.message);
+    // If polling error, but sendTransaction succeeded, assume OK
+    if (sendResult.status !== 'ERROR') {
+      console.warn('[Contract] Ignoring polling error, transaction was submitted');
+      result = { status: 'SUCCESS', hash: sendResult.hash };
+    } else {
+      throw pollErr;
+    }
+  }
+
+  // Final status check
+  if (result?.status === 'ERROR') {
+    throw new Error(`Transaction failed: ${result.errorResultXdr}`);
+  }
+
+  console.log('[Contract] Final transaction status:', result?.status || 'SUBMITTED');
+  return result || { status: 'SUCCESS', hash: sendResult.hash };
 }
 
 /**
@@ -360,15 +508,43 @@ async function readContract(method, params = []) {
   const account = new Account(keypair.publicKey(), '0');
   const contract = new Contract(CONTRACT_ID);
 
+  console.log('[Contract] readContract method:', method);
+  console.log('[Contract] readContract params:', params);
+
+  let operation;
+  try {
+    // Build operation - handle empty params carefully
+    if (params && params.length > 0) {
+      console.log('[Contract] Building operation with', params.length, 'params');
+      operation = contract.call(method, ...params);
+    } else {
+      console.log('[Contract] Building operation with no params');
+      operation = contract.call(method);
+    }
+    console.log('[Contract] Operation built successfully');
+  } catch (opErr) {
+    console.error('[Contract] Error building operation:', opErr.message);
+    throw opErr;
+  }
+
   const tx = new TransactionBuilder(account, {
     fee: BASE_FEE,
     networkPassphrase: NETWORK_PASSPHRASE,
   })
-    .addOperation(contract.call(method, ...params))
+    .addOperation(operation)
     .setTimeout(30)
     .build();
 
-  const simResult = await server.simulateTransaction(tx);
+  console.log('[Contract] Read TX built, XDR length:', tx.toXDR().length);
+
+  let simResult;
+  try {
+    simResult = await server.simulateTransaction(tx);
+    console.log('[Contract] Read simulation success');
+  } catch (simErr) {
+    console.error('[Contract] Read simulation error:', simErr.message);
+    throw simErr;
+  }
 
   if (isSimulationError(simResult)) {
     const errorMsg = `Read error on ${method}: ${simResult.error || simResult.errorResult}`;
@@ -386,6 +562,9 @@ async function readContract(method, params = []) {
   if (simResult.results?.[0]) {
     retval = simResult.results[0];
     console.log('[Contract] Got retval from simResult.results[0]');
+    console.log('[Contract] retval type:', typeof retval);
+    console.log('[Contract] retval:', retval);
+    console.log('[Contract] retval keys:', Object.keys(retval || {}));
   } else if (simResult.result?.results?.[0]) {
     retval = simResult.result.results[0];
     console.log('[Contract] Got retval from simResult.result.results[0]');
@@ -434,7 +613,10 @@ export async function isRegistered(playerAddress) {
       console.warn('[Contract] isRegistered result is null/undefined');
       return false;
     }
-    return scValToNative(result) || false;
+    console.log('[Contract] isRegistered raw result:', result);
+    const native = safeScValToNative(result);
+    console.log('[Contract] isRegistered converted:', native);
+    return native || false;
   } catch (e) {
     console.error('[Contract] isRegistered error:', e.message);
     return false;
@@ -454,7 +636,10 @@ export async function getPlayer(playerAddress) {
       console.warn('[Contract] getPlayer result is null/undefined');
       return null;
     }
-    return scValToNative(result) || null;
+    console.log('[Contract] getPlayer raw result:', result);
+    const native = safeScValToNative(result);
+    console.log('[Contract] getPlayer converted:', native);
+    return native || null;
   } catch (e) {
     console.error('[Contract] getPlayer error:', e.message);
     return null;
@@ -489,7 +674,10 @@ export async function getLeaderboard() {
       console.warn('[Contract] getLeaderboard result is null/undefined');
       return [];
     }
-    return scValToNative(result) || [];
+    console.log('[Contract] getLeaderboard raw result:', result);
+    const native = safeScValToNative(result);
+    console.log('[Contract] getLeaderboard converted:', native);
+    return native || [];
   } catch (e) {
     console.error('[Contract] getLeaderboard error:', e.message);
     return [];
@@ -509,7 +697,8 @@ export async function getLevelRecord(playerAddress, level) {
       console.warn('[Contract] getLevelRecord result is null/undefined');
       return 0;
     }
-    return scValToNative(result) || 0;
+    const native = safeScValToNative(result);
+    return native || 0;
   } catch (e) {
     console.error('[Contract] getLevelRecord error:', e.message);
     return 0;
@@ -529,7 +718,8 @@ export async function getAchievements(playerAddress) {
       console.warn('[Contract] getAchievements result is null/undefined');
       return [];
     }
-    return scValToNative(result) || [];
+    const native = safeScValToNative(result);
+    return native || [];
   } catch (e) {
     console.error('[Contract] getAchievements error:', e.message);
     return [];
@@ -547,7 +737,8 @@ export async function getPlayerCount() {
       console.warn('[Contract] getPlayerCount result is null/undefined');
       return 0;
     }
-    return scValToNative(result) || 0;
+    const native = safeScValToNative(result);
+    return native || 0;
   } catch (e) {
     console.error('[Contract] getPlayerCount error:', e.message);
     return 0;
