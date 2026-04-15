@@ -18,10 +18,12 @@ import {
 
 import { signTransaction } from './wallet.js';
 
-// ✅ Contract sudah di-deploy ke Stellar Testnet
+// ✅ Contract ID dari deployment sebelumnya
 const CONTRACT_ID = 'CAYDXSHWUMRM35CZCN5MRM5NUDEG73JKFVPIAKSFGBRWH2OFF46LYK37';
 const NETWORK_PASSPHRASE = Networks.TESTNET;
 const RPC_URL = 'https://soroban-testnet.stellar.org';
+
+console.log('[Contract] Using ID:', CONTRACT_ID);
 
 // Contract sudah di-deploy — aktifkan semua fungsi
 const CONTRACT_DEPLOYED = true;
