@@ -2,8 +2,8 @@
 // MenuScene.js — Main Menu + Leaderboard + Wallet Connect
 // =============================================================
 import Phaser from 'phaser';
-import { connectWallet, getWalletAddress, getIsConnected } from '../stellar/wallet.js';
-import { getLeaderboard, getPlayer, isRegistered, registerPlayer } from '../stellar/contract.js';
+import { connectWallet, getWalletAddress, getIsConnected, diagnoseWallet } from '../stellar/wallet.js';
+import { getLeaderboard, getPlayer, isRegistered, registerPlayer, runDiagnostics, CONTRACT_ID, RPC_URL } from '../stellar/contract.js';
 
 const ACHIEVEMENT_NAMES = [
   '🌟 First Step',
@@ -25,6 +25,12 @@ export class MenuScene extends Phaser.Scene {
     const W = this.scale.width;
     const H = this.scale.height;
 
+    // Debug info
+    console.log('%c🎮 MENU SCENE LOADED', 'color: #7c3aed; font-size: 14px; font-weight: bold');
+    console.log('Running diagnostics...');
+    diagnoseWallet().catch(console.error);
+    runDiagnostics().catch(console.error);
+
     // ── Background gradient (stars) ──
     this.createBackground();
 
@@ -42,6 +48,14 @@ export class MenuScene extends Phaser.Scene {
       fontFamily: "'Press Start 2P'",
       fontSize: '9px',
       color: '#a78bfa',
+    }).setOrigin(0.5);
+
+    // ── CONTRACT INFO (DEBUG) ──
+    const contractDisplay = `Contract: ${CONTRACT_ID.slice(0, 12)}...${CONTRACT_ID.slice(-4)}`;
+    this.add.text(W / 2, 108, contractDisplay, {
+      fontFamily: 'monospace',
+      fontSize: '7px',
+      color: '#888888',
     }).setOrigin(0.5);
 
     // ── PLAY BUTTON ──
@@ -290,25 +304,42 @@ export class MenuScene extends Phaser.Scene {
       this.updatePlayerPanel();
     } catch (err) {
       console.error('[Menu] Contract error:', err.message);
-      console.error('[Menu] Full error:', err);
+      console.error('[Menu] Full error stack:', err);
+      console.error('[Menu] Error details:', {
+        name: err.name,
+        message: err.message,
+        toString: String(err),
+      });
 
       // ── Offline mode: tampilkan info wallet tanpa data on-chain ──
       const shortAddr = `${address.slice(0, 4)}...${address.slice(-4)}`;
-      this.playerData = null; // tetap null tapi panel tetap diupdate
+      this.playerData = null;
       
-      // Tampilkan error detail untuk debugging
-      const errorDetail = err.message.includes('CONTRACT ID') || err.message.includes('not found')
-        ? 'Invalid CONTRACT_ID?'
-        : err.message.includes('offchain')
-        ? 'RPC Connection Error'
-        : 'Contract Error';
+      // Parse error untuk UI
+      const errorMsg = String(err.message || err);
+      let errorDetail = 'Contract Error';
+      
+      if (errorMsg.includes('offchain') || errorMsg.includes('RPC') || errorMsg.includes('fetch')) {
+        errorDetail = '❌ RPC Issue';
+      } else if (errorMsg.includes('CONTRACT ID') || errorMsg.includes('contract not found')) {
+        errorDetail = '❌ Invalid Contract ID';
+      } else if (errorMsg.includes('not found') || errorMsg.includes('404')) {
+        errorDetail = '❌ Contract Not Found';
+      } else if (errorMsg.includes('simulation')) {
+        errorDetail = '⚠️ Simulation Failed';
+      }
       
       this.playerStatusText.setText(
-        `${shortAddr}\n\nMode Offline\n(${errorDetail})`,
+        `${shortAddr}\n\nMode Offline\n${errorDetail}`,
       );
       this.playerStatusText.setColor('#f6ad55');
       this.playerStatusText.setLineSpacing(6);
-      this.showNotification(`⚠️ Mode Offline — ${errorDetail}`, '#f6e05e');
+      
+      // Tampilkan full error message
+      const notifMsg = errorMsg.length > 50 
+        ? errorMsg.substring(0, 47) + '...'
+        : errorMsg;
+      this.showNotification(`⚠️ ${notifMsg}`, '#f6e05e');
     }
   }
 

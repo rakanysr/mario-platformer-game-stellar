@@ -122,3 +122,20 @@ export async function signTransaction(xdr, network = 'TESTNET') {
 
 export function getWalletAddress() { return walletAddress; }
 export function getIsConnected()   { return _isConnected; }
+
+/**
+ * Diagnostic: Test wallet dapat sign transactions
+ */
+export async function diagnoseWallet() {
+  console.log('%c=== WALLET DIAGNOSTICS ===', 'color: #0891b2; font-weight: bold');
+  console.log('Wallet Address:', walletAddress);
+  console.log('Is Connected:', _isConnected);
+  
+  if (!_isConnected) {
+    console.warn('⚠️  Wallet not connected yet');
+    return false;
+  }
+  
+  console.log('✅ Wallet is connected');
+  return true;
+}
