@@ -6,23 +6,21 @@
 
 <img width="1912" height="984" alt="image" src="https://github.com/user-attachments/assets/0249f463-ee42-4b1d-af72-d418de5f5d51" />
 
+**Stellar Mario** is a Web3 2D retro-style Platformer game (similar to Super Mario) that integrates the fun of classic gaming with **Stellar Smart Contracts (Soroban)** technology. All player achievements, from scores, coin collection, to the global leaderboard and achievement tracking system, are recorded decentrally on the Stellar Mainnet blockchain!
 
+## 🎮 Main Features
 
-**Stellar Mario** adalah game Web3 2D Platformer bergaya retro (mirip Super Mario) yang mengintegrasikan keseruan game klasik dengan teknologi **Stellar Smart Contracts (Soroban)**. Semua pencapaian pemain, mulai dari skor, pengumpulan koin, hingga *global leaderboard* dan sistem *achievement* direkam secara desentralisasi di atas blockchain Stellar Testnet!
+### 🛠️ Web3 & Soroban Features
+- **Freighter Wallet Integration:** Secure player authentication and transactions using Freighter Wallet (using the latest Freighter v4 API).
+- **On-chain Leaderboard:** The Top 10 global leaderboard is automatically recorded and sorted inside the Soroban smart contract.
+- **Player Stats & Profile:** Persistent player data includes Highest Level, Total Coins, Total Games, and Accumulated Score.
+- **Smart Achievements System:** Complete challenges (such as "Coin Collector" or "Speedrunner") to earn achievements recorded on the blockchain.
+- **Seamless Contract Interactions:** Read-only functions to load data without transaction fees (via simulation), and auto-signing implementation to minimize gameplay interruptions.
 
-## 🎮 Fitur Utama
-
-### 🛠️ Fitur Web3 & Soroban
-- **Freighter Wallet Integration:** Otentikasi dan transaksi pemain menggunakan Freighter Wallet secara aman (menggunakan API Freighter v4 terbaru).
-- **On-chain Leaderboard:** Peringkat Top 10 global dicatat dan diurutkan otomatis di dalam smart contract Soroban.
-- **Player Stats & Profile:** Data permanen pemain meliputi Level Tertinggi, Total Koin, Total Game, dan Skor Akumulasi.
-- **Smart Achievements System:** Selesaikan tantangan (seperti "Coin Collector" atau "Speedrunner") untuk mendapatkan achievement yang terekam di blockchain.
-- **Seamless Contract Interactions:** Fungsi read-only untuk memuat data tanpa memotong biaya fee (simulasi), dan auto-signing untuk meminimalisir interupsi bermain.
-
-### 🕹️ Fitur Gameplay (Phaser 3)
-- **Procedural Graphics:** Hebatnya, game ini **tidak menggunakan file gambar `.png` atau `.jpg` sama sekali!** Seluruh sprite karakter, animasi gerak, musuh, tile tanah, hingga koin digambar secara algoritmik 100% menggunakan kode dengan `Phaser.Graphics`.
-- **Classic Platformer Physics:** Sistem gravitasi dan tabrakan mulus (jump, run, fall death detection).
-- **Infinite Potential:** Engine game didesain modular dengan level generator sehingga Anda bisa mengembangkan level tanpa batas.
+### 🕹️ Gameplay Features (Phaser 3)
+- **Procedural Graphics:** Amazingly, this game **does not use any `.png` or `.jpg` image files at all!** All character sprites, movement animations, enemies, ground tiles, and coins are drawn algorithmically 100% using code with `Phaser.Graphics`.
+- **Classic Platformer Physics:** Smooth gravity and collision system (jump, run, fall death detection).
+- **Infinite Potential:** The game engine is designed modularly with a level generator so you can expand levels limitlessly.
 
 ---
 
@@ -32,88 +30,84 @@
 - **Frontend / Client:** JavaScript, [Phaser 3](https://phaser.io/) (Game Engine), DOM Manipulation
 - **Bundler:** Vite
 - **Web3 Interface:** `@stellar/stellar-sdk` v13, `@stellar/freighter-api`
-- **Deployment:** Vercel (Frontend), Stellar Testnet (Contract)
+- **Deployment:** Vercel (Frontend), Stellar Mainnet (Contract)
 
 ---
 
-## 📂 Struktur Project
+## 📂 Project Structure
 
 ```text
 mario-platformer-game-stellar-workshop/
 ├── contracts/
-│   └── platformer/         # Folder Smart Contract Soroban (Rust)
-│       ├── src/lib.rs      # Logika Utama Smart Contract Player, Score, & Leaderboard
-│       └── Cargo.toml      # Konfigurasi Rust / Dependensi
-├── frontend/               # Folder Game Client Android/Web
+│   └── platformer/         # Soroban Smart Contract Folder (Rust)
+│       ├── src/lib.rs      # Main Logic for Player, Score, & Leaderboard
+│       └── Cargo.toml      # Rust / Dependencies Configuration
+├── frontend/               # Android/Web Game Client Folder
 │   ├── src/                
-│   │   ├── scenes/         # Scene Phaser (Boot, Menu, Game, GameOver)
-│   │   ├── stellar/        # Client Integrasi Stellar (contract.js & wallet.js)
-│   │   └── main.js         # Entry point Phaser Game
-│   ├── index.html          # Shell HTML UI
-│   └── vite.config.js      # Konfigurasi Vite
+│   │   ├── scenes/         # Phaser Scenes (Boot, Menu, Game, GameOver)
+│   │   ├── stellar/        # Stellar Integration Client (contract.js & wallet.js)
+│   │   └── main.js         # Phaser Game Entry point
+│   ├── index.html          # HTML UI Shell
+│   └── vite.config.js      # Vite Configuration
 └── Cargo.toml              # Workspace Cargo configuration
 ```
 
 ---
 
-## 🚀 Panduan Memulai (Development Lokal)
+## 🚀 Getting Started (Local Development)
 
-### Persyaratan
+### Requirements
 1. [Node.js](https://nodejs.org/en) (v18+)
-2. [Rust & Cargo](https://rustup.rs/) (v1.81+) & target wasm32: `rustup target add wasm32-unknown-unknown`
+2. [Rust & Cargo](https://rustup.rs/) (v1.81+) & wasm32 target: `rustup target add wasm32-unknown-unknown`
 3. [Stellar CLI](https://developers.stellar.org/docs/build/smart-contracts/getting-started/setup)
-4. Extension Browser **[Freighter Wallet](https://freighter.app/)** (Ubah Network ke **Testnet**)
+4. Browser Extension **[Freighter Wallet](https://freighter.app/)** (Change Network to **Mainnet**)
 
 ### 1. Compile & Deploy Smart Contract
-*(Jika Anda hanya ingin menjalankan UI, Anda bisa melewati langkah ini karena Contract ID testnet sudah ada by default di codebase kami: `CAYDXSH...`).*
+*(If you only want to run the UI, you can skip this step because the Mainnet Contract ID is already set by default in our codebase: `CD2U3XYUQFADHRHO2TG3RMNLDOX5CEX25GENYQZHINRADIPQMTMTOFBW`).*
 
 ```bash
-# Compile contract menjadi WASM
+# Compile contract into WASM
 stellar contract build
 
-# Setup Testnet Identity (jika belum ada)
-stellar keys generate testnet-deployer --network testnet
-stellar keys fund testnet-deployer --network testnet
-
-# Deploy ke Testnet
-stellar contract deploy --wasm target/wasm32v1-none/release/platformer.wasm --source testnet-deployer --network testnet
+# Deploy to Mainnet (requires XLM)
+stellar contract deploy --wasm target/wasm32v1-none/release/platformer.wasm --source-account <your_wallet_alias> --network mainnet
 ```
-*(Catat **Contract ID** yang muncul dan masukkan ke file `frontend/src/stellar/contract.js`).*
+*(Copy the generated **Contract ID** and insert it into the `frontend/src/stellar/contract.js` file).*
 
 ```bash
 # Initialize Contract Admin
-stellar contract invoke --id <CONTRACT_ID> --source testnet-deployer --network testnet -- initialize --admin $(stellar keys address testnet-deployer)
+stellar contract invoke --id <CONTRACT_ID> --source-account <your_wallet_alias> --network mainnet -- initialize --admin <your_wallet_address>
 ```
 
-### 2. Menjalankan Game Frontend
+### 2. Running the Frontend Game
 
 ```bash
 cd frontend
 
-# Install dependensi
+# Install dependencies
 npm install
 
-# Jalankan server lokal
+# Run local server
 npm run dev
 ```
 
-Buka `http://localhost:3000` di web browser Anda. Pastikan Freighter Wallet ter-unlock dan set ke **Testnet**.
+Open `http://localhost:3000` in your web browser. Make sure Freighter Wallet is unlocked and set to **Mainnet**.
 
 ---
 
-## 🕹️ Cara Bermain
+## 🕹️ How to Play
 
-1. **Connect Wallet:** Klik tombol `CONNECT WALLET` di layar utama. Izinkan pop-up Freighter menghubungkan akun Anda.
-2. **Daftarkan Username:** (Hanya diminta 1 kali) Masukkan nama panggilan untuk tampil di Leaderboard.
-3. **Mulai Bermain:** Klik `PLAY GAME`.
-4. **Kontrol Karakter:**
-   - **Panah Kanan / Kiri (← / →):** Berjalan
-   - **Tombol Atas (↑) / Spasi:** Melompat
-5. Hindari musuh berbentuk kotak merah bata. Kumpulkan koin emas.
-6. Berhasil mencapai titik ujung kordinat tanpa mati (atau mati terjatuh) akan memicu transaksi blockchain otomatis (Soroban Invoke) untuk menyimpan rekor dan mengecek *achievement*. Konfirmasi transaksi pop-up pada Freighter Anda agar skor tercatat secara global!
+1. **Connect Wallet:** Click the `CONNECT WALLET` button on the main screen. Allow the Freighter pop-up to connect your account.
+2. **Register Username:** (Only asked once) Enter a nickname to be displayed on the Leaderboard.
+3. **Start Playing:** Click `PLAY GAME`.
+4. **Character Controls:**
+   - **Left / Right Arrows (← / →):** Walk
+   - **Up Arrow (↑) / Space:** Jump
+5. Avoid brick-red box enemies. Collect gold coins.
+6. Reaching the end coordinate without dying (or falling to death) will trigger an automatic blockchain transaction (Soroban Invoke) to save records and check *achievements*. Confirm the transaction pop-up on your Freighter to record your score globally!
 
 ---
 
-## 📜 Lisensi
+## 📜 License
 
-Proyek ini dibuat untuk keperluan edukasi dan *workshop*. Bebas digunakan dan dimodifikasi di bawah [MIT License].
+This project was created for educational purposes and *workshops*. Free to use and modify under the [MIT License].
