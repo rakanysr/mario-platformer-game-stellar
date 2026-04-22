@@ -5,7 +5,7 @@
 <img width="2532" height="1305" alt="image" src="https://github.com/user-attachments/assets/453f5893-c9a4-4cc1-87f3-42646a35c148" />
 
 
-CONTRACT ID: CD2U3XYUQFADHRHO2TG3RMNLDOX5CEX25GENYQZHINRADIPQMTMTOFBW
+MAINNET CONTRACT ID: CD2U3XYUQFADHRHO2TG3RMNLDOX5CEX25GENYQZHINRADIPQMTMTOFBW
 
 **Stellar Mario** is a Web3 2D retro-style Platformer game (similar to Super Mario) that integrates the fun of classic gaming with **Stellar Smart Contracts (Soroban)** technology. All player achievements, from scores, coin collection, to the global leaderboard and achievement tracking system, are recorded decentrally on the Stellar Mainnet blockchain!
 
