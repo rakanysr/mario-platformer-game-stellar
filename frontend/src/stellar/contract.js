@@ -26,9 +26,9 @@ console.log('[Contract] SorobanRpc available?', typeof SorobanRpc, SorobanRpc);
 console.log('[Contract] SorobanRpc.Server available?', SorobanRpc?.Server ? 'YES' : 'NO');
 
 // ✅ Contract ID dari deployment sebelumnya
-const CONTRACT_ID = 'CAYDXSHWUMRM35CZCN5MRM5NUDEG73JKFVPIAKSFGBRWH2OFF46LYK37';
-const NETWORK_PASSPHRASE = Networks.TESTNET;
-const RPC_URL = 'https://soroban-testnet.stellar.org';
+const CONTRACT_ID = 'CD2U3XYUQFADHRHO2TG3RMNLDOX5CEX25GENYQZHINRADIPQMTMTOFBW';
+const NETWORK_PASSPHRASE = Networks.PUBLIC;
+const RPC_URL = 'https://mainnet.sorobanrpc.com/';
 
 console.log('[Contract] Using ID:', CONTRACT_ID);
 
@@ -254,7 +254,7 @@ function createMinimalRpcClient(url) {
       
       // Soroban RPC doesn't support getAccount - use Horizon API as fallback
       try {
-        const horizonUrl = 'https://horizon-testnet.stellar.org';
+        const horizonUrl = 'https://horizon.stellar.org';
         const response = await fetch(`${horizonUrl}/accounts/${accountId}`);
         const data = await response.json();
         
@@ -427,7 +427,7 @@ async function invokeContract(walletAddress, method, params) {
   const assembledTx = assembleTransaction(tx, simResult);
 
   // Sign via Freighter
-  const signedXdr = await signTransaction(assembledTx.toXDR(), 'TESTNET');
+  const signedXdr = await signTransaction(assembledTx.toXDR(), 'PUBLIC');
   const signedTx  = TransactionBuilder.fromXDR(signedXdr, NETWORK_PASSPHRASE);
 
   // Submit

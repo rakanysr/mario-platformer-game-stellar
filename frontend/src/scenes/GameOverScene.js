@@ -174,7 +174,7 @@ export class GameOverScene extends Phaser.Scene {
         padding: { x: 8, y: 4 },
       }).setOrigin(0.5).setInteractive({ useHandCursor: true })
         .on('pointerdown', () => {
-          window.open(`https://stellar.expert/explorer/testnet`, '_blank');
+          window.open(`https://stellar.expert/explorer/public`, '_blank');
         });
     } catch (err) {
       dotTimer.destroy();
