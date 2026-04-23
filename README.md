@@ -1,4 +1,4 @@
-# ⭐ Stellar Mario: Blockchain Platformer 🍄
+# ⭐ Stellar Mario: Blockchain Platformer (Not Mobile-Optimized) 🍄
 
 <img width="2559" height="1361" alt="image" src="https://github.com/user-attachments/assets/c6d41e23-6d50-425e-bf17-a755da519ae6" />
 
